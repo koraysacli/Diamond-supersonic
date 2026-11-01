@@ -1,0 +1,17 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+export HWLOC_COMPONENTS=-gl
+echo "OpenFOAM ortami hazirlaniyor..."
+source /opt/openfoam14/etc/bashrc ParaView_TYPE=none
+set -e
+echo "Ag olusturuluyor..."
+blockMesh > log.blockMesh 2>&1
+echo "Ag kontrol ediliyor..."
+checkMesh > log.checkMesh 2>&1
+if ! grep -q 'Mesh OK' log.checkMesh; then
+    tail -n 40 log.checkMesh
+    exit 1
+fi
+echo "Cozum basladi; ilerleme log.foamRun dosyasina yaziliyor."
+foamRun > log.foamRun 2>&1
+printf 'Cozum tamamlandi. ParaView ile diamond.foam dosyasini acin.\n'
